@@ -1,0 +1,3 @@
+[submodule "external/coilstellaration"]
+	path = external/coilstellaration
+	url = https://github.com/proximafusion/coilstellaration
