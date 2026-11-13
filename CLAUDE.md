@@ -175,6 +175,7 @@ root; pass paths explicitly.
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:` ...). Every commit gets an entry
   in `docs/BITACORA.md`. Add explicit paths to `git add` (no `-A` / `.`). Commit footer:
   `Co-Authored-By: <model> <noreply@anthropic.com>`.
+- At session start read the latest `docs/BITACORA.md` entries; log each commit and decision (`D-NNN`) there.
 - Data, checkpoints and ONNX files are never committed (`.gitignore`); paper PDFs stay local in
   `docs/papers/`.
 - Ruff line length 100, Python 3.12, uv only (no pip installs).
