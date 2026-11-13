@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "coilgen"
+version = "0.1.0"
+description = "Learning-based stellarator coilset generation for the CoilStellaration benchmark"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Miguel Becerra" }]
+dependencies = [
+  "coilstellaration",
+]
+
+[tool.uv.sources]
+coilstellaration = { path = "external/coilstellaration", editable = true }
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "ruff",
+  "pre-commit",
+  "ipykernel",
+  "jupyterlab",
+  "matplotlib",
+  "seaborn",
+  "pandas",
+  "pyarrow",
+  "datasets",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/coilgen"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "PTH", "NPY"]

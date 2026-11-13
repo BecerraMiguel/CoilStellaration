@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage*
+htmlcov/
+
+# Environments
+.venv/
+.env
+.env.*
+
+# Local data and artifacts (never committed)
+data/*
+!data/README.md
+outputs/
+wandb/
+mlruns/
+*.onnx
+!tests/fixtures/**/*.onnx
+.cache/
+huggingface/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Papers (arXiv license: keep locally, do not redistribute)
+docs/papers/*.pdf
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
