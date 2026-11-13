@@ -158,6 +158,11 @@ root; pass paths explicitly.
 - **Local** (2 CPU cores, 3 GB RAM total, often <1 GB free; no GPU, no Docker, no `gh`, no sudo/apt,
   ~145 GB disk): development, tests, light EDA on the `results` subset (load lazily with
   pyarrow/polars if `datasets` is heavy), tiny smoke runs. Not for training or full-eval DESC scoring.
+- **Known local blocker**: the local CPU (Intel Celeron N2840) has no AVX; jaxlib wheels require it
+  (`RuntimeError: ... built using AVX`; bypassing the guard gives SIGILL). So JAX, DESC and
+  `import coilstellaration` do NOT work locally; upstream tests/scoring/training must run on Colab or
+  university GPUs. Local-safe: pyarrow/pandas/HF download, `import coilgen`. `tests/test_smoke.py`
+  skips the upstream import when AVX is missing.
 - **Google Colab GPUs**: interactive experiments and prototyping.
 - **University research-group GPUs**: the MAIN resource for training, sweeps and large DESC
   evaluations. Keep training scripts config-driven (`configs/`) so they run unchanged off-machine.
