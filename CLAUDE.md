@@ -153,13 +153,15 @@ root; pass paths explicitly.
   run_benchmark_scoring (`--desc-maxiters` for warm-start experiments; official numbers only from
   the Space).
 
-## Machine constraints and compute implication
+## Compute resources
 
-2 CPU cores, 3 GB RAM total (often <1 GB free), no GPU, no Docker, no `gh`, ~145 GB disk. No sudo/apt.
-Local = code, tests, EDA on the `results` subset (load lazily with pyarrow/polars if `datasets`
-is heavy), tiny smoke runs. NOT for serious training or full-eval DESC scoring (one instance takes
-minutes of DESC compile+eval). Plan for cloud / free GPU compute for training and for full
-evaluation. Never download the `metrics` subset; avoid loading `coilsets` fully into RAM.
+- **Local** (2 CPU cores, 3 GB RAM total, often <1 GB free; no GPU, no Docker, no `gh`, no sudo/apt,
+  ~145 GB disk): development, tests, light EDA on the `results` subset (load lazily with
+  pyarrow/polars if `datasets` is heavy), tiny smoke runs. Not for training or full-eval DESC scoring.
+- **Google Colab GPUs**: interactive experiments and prototyping.
+- **University research-group GPUs**: the MAIN resource for training, sweeps and large DESC
+  evaluations. Keep training scripts config-driven (`configs/`) so they run unchanged off-machine.
+- Never download the `metrics` subset; avoid loading `coilsets` fully into RAM locally.
 
 ## Conventions
 
