@@ -234,3 +234,35 @@ como "condicional"); más el commit que añade esta entrada (su hash se cita en 
 
 ### Modelo(s) de Claude usados
 - Opus 5.5 (sesión principal; tarea corta, sin subagente).
+
+---
+
+## Entrada 3 — 2026-11-26 — Autoría de los commits
+
+**Fecha:** 2026-11-26
+**Sesión / Fase:** sesión 2, Fase 0
+**Commits:** `4a151ec` docs(bitacora): add entry 2 (GitHub remote) (commit de la bitácora de la
+Entrada 2); más el commit que añade esta entrada (su hash se cita en la Entrada 4).
+
+### Qué se hizo
+- Miguel vio a Claude como contribuidor en GitHub. En un primer momento se interpretó que no quería
+  aparecer con Claude: se reescribió el historial para quitar el trailer `Co-Authored-By` y se hizo
+  push forzado.
+- Miguel aclaró que sí quiere a Claude como **coautor**, siempre que él sea el **autor**. Esa ya era
+  la situación original (autor de todos los commits: Miguel Becerra; Claude solo en el trailer), así
+  que se restauró el historial original desde el tag local `backup/pre-rewrite` y se volvió a hacer
+  push forzado. Los hashes vuelven a ser los originales; las Entradas 1–2 siguen siendo válidas.
+  La versión sin trailer queda solo como tag local `backup/no-trailer` (no publicado).
+
+### Decisiones
+| ID | Decisión | Motivo | Alternativas descartadas |
+|---|---|---|---|
+| D-012 | **Autoría:** Miguel es siempre el autor de los commits; Claude figura solo como coautor mediante el trailer `Co-Authored-By: <modelo> <noreply@anthropic.com>`. Además, cada entrada de la bitácora registra qué modelo hizo qué. | Proyecto de portafolio de Miguel, con transparencia sobre el uso de IA. | Quitar el trailer (se probó y se revirtió: Miguel prefiere la coautoría visible). |
+
+### Discusiones y hallazgos
+- GitHub muestra a los coautores en la lista de contribuidores junto al autor; no se controla el
+  orden. La autoría real de cada commit (campo *author*) es de Miguel en todos los casos.
+- Desde ahora el historial publicado no se vuelve a reescribir.
+
+### Modelo(s) de Claude usados
+- Opus 5.5 (sesión principal; tarea corta, sin subagente).

@@ -173,8 +173,9 @@ root; pass paths explicitly.
 - Code, comments, commit messages, README, CLAUDE.md in English; `docs/ROADMAP.md` and
   `docs/BITACORA.md` in Spanish.
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:` ...). Every commit gets an entry
-  in `docs/BITACORA.md`. Add explicit paths to `git add` (no `-A` / `.`). Commit footer:
-  `Co-Authored-By: <model> <noreply@anthropic.com>`.
+  in `docs/BITACORA.md`. Add explicit paths to `git add` (no `-A` / `.`). Miguel is always the
+  commit author; Claude goes only as co-author via the footer
+  `Co-Authored-By: <model> <noreply@anthropic.com>` (D-012).
 - At session start read the latest `docs/BITACORA.md` entries; log each commit and decision (`D-NNN`) there.
 - Data, checkpoints and ONNX files are never committed (`.gitignore`); paper PDFs stay local in
   `docs/papers/`.
