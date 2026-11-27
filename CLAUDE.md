@@ -113,6 +113,17 @@ defined only by field error.
   in-graph refinement is clearly powerful; keep pure-learned and hybrid results separate and
   disclose which is which.
 
+### Leaderboard on 2026-11-26 (snapshot: `docs/reports/leaderboard_snapshots/2026-11-26.md`)
+The board moved fast; the 2026-11-12 numbers above are history. Regenerate with
+`uv run python scripts/leaderboard_snapshot.py` (reads `proxima-fusion/coilstellaration-bench-results`).
+- fixed_shape: top strict **1.000** / mean 1.000 (`wolfoftizirane/...-resmlp-lm-repair-fixed`,
+  1.6 M params, ~1.6 s/instance: learned net + in-graph LM). Several entries >0.95 strict.
+- variable_shape: top strict 0.947 / mean 0.971 (`wolfoftizirane/...-screened-projection`, ~0.46 s).
+- **Fast entries (~0-1 ms, likely no in-graph optimizer)**: `phanerozoic/coilstellaration-direct`
+  fixed strict 0.44-0.49 / mean 0.68-0.74; `petro-popov/...-direct-phys-resmlp` 0.22 / 0.38. The
+  ROADMAP L3 targets (S>=0.30, strict>=10%) are already beaten by others: strategy review pending (G6).
+- Results do not record pure vs. hybrid; Proxima's own baselines are not in the results dataset.
+
 ## Repository layout
 
 - `src/coilgen/` our package (currently only `__version__`). Own code goes here, not in upstream.
@@ -176,9 +187,10 @@ current one with `grep -m1 'model name' /proc/cpuinfo` (or `grep -c avx /proc/cp
   password, ~430 GB free disk). **Has AVX/AVX2**: JAX (CPU), DESC and `import coilstellaration`
   work; all our tests and upstream `scoring_test.py` pass. **Memory is the limit**: one DESC
   metric evaluation peaks at ~3.7 GB RSS (first instance ~100 s incl. JIT, then ~10 s each in the
-  same process); with the desktop open only ~3.6 GB are free and the stock 512 MB swap gets the
+  same process); with the desktop open only ~3.6 GB are free; with the stock 512 MB swap this got the
   process OOM-killed (silently: output just stops; check `journalctl -k | grep -i oom`). Run one
-  DESC job at a time; free models/JAX caches before DESC; a larger swapfile is recommended. Use it for JAX/DESC development, upstream
+  DESC job at a time; free models/JAX caches before DESC. Swap enlarged to 8 GB on 2026-11-26:
+  `quickcheck_score.py --n 4` now runs without OOM (peak ~3.5 GB). Use it for JAX/DESC development, upstream
   tests, scoring a handful of instances, tiny training smoke runs. Still not for real training or
   full-eval DESC scoring (RAM). uv is in `~/.local/bin`. `booz-xform` (via `constellaration`) has no
   wheel and builds from source: needs apt `build-essential cmake ninja-build libnetcdf-dev`; if the

@@ -160,7 +160,7 @@ Una "sesión" = 2–3 h de trabajo conjunto. Las fases 6 y 7 pueden intercambiar
 
 - [x] Entorno `uv` con Python 3.12; `uv.lock` commiteado; upstream como submódulo fijado en `external/coilstellaration` e instalado como dependencia editable. (`9cf503a`, `b397ce7`)
 - [x] Verificar que `import desc`, `import coilstellaration` y un cálculo de métricas sobre una fila funcionan en local: hecho en el **PC Ryzen** con `scripts/check_env.py` (el coilset de referencia reproduce sus objetivos con error relativo ~1e−15; S = 1). Tiempos y pico de memoria en BITACORA, Entrada 5. En el PC Celeron no es posible (sin AVX, D-008).
-- [ ] Repetir `scripts/check_env.py` en Colab y en el cluster (GPU) y anotar tiempos.
+- ~~Repetir `scripts/check_env.py` en Colab y en el cluster (GPU) y anotar tiempos.~~ Pospuesta a la Fase 2 (D-017): en Fase 0 solo repetiría S = 1; su valor real es medir DESC en GPU y dejar listo Colab para entrenar.
 - [ ] **Acceso al cómputo del grupo de la universidad:** averiguar y documentar en `docs/COMPUTE.md` el modo de acceso (SLURM o SSH directo), GPUs disponibles, cuotas y normas de uso, almacenamiento (home/scratch), salida a internet desde los nodos y si se admiten contenedores (Apptainer/Docker). Confirmar con el responsable del grupo que este proyecto puede usar el recurso.
 - [ ] Replicar el entorno en el cluster (`uv sync` desde el lock, o imagen de contenedor a partir del Dockerfile de upstream si `uv` no es viable) y ejecutar allí `scripts/check_env.py` en GPU. (Requisitos de sistema ya conocidos: `cmake ninja-build libnetcdf-dev` y compilador C/C++ para `booz-xform`.)
 - [ ] Plantillas de lanzamiento: `scripts/cluster/{train.sbatch,eval_array.sbatch}` (o equivalentes `ssh` + `tmux` si no hay planificador) y un notebook de arranque para Colab que clona el repo e instala el entorno.
@@ -169,15 +169,17 @@ Una "sesión" = 2–3 h de trabajo conjunto. Las fases 6 y 7 pueden intercambiar
 - [x] CI mínima en GitHub Actions: lint + tests rápidos (sin DESC pesado). (`39f5ce3`, Entrada 5)
 - [x] `README.md` (inglés) con objetivo, estado y cómo reproducir; `CLAUDE.md` con convenciones del proyecto; `docs/BITACORA.md` iniciada. (`dc0a2f4`, `b4cbdf2`, `af950ce`)
 - [x] Cuenta y repo de GitHub: público desde el principio (D-011).
-- [ ] Cuenta de Hugging Face y token (lectura para descargas; escritura para los envíos de la Fase 2).
-- [ ] Cuenta de Weights & Biases (necesaria desde la Fase 2).
-- [ ] Lectura completa del paper (23 páginas) con notas propias; lista de dudas en `docs/notes/00_paper_dudas.md`.
+- [x] Cuenta de Hugging Face (Miguel). El token se configura cuando haga falta (lectura: descargas; escritura: envíos de la Fase 2).
+- [x] Cuenta de Weights & Biases (Miguel). Se conecta en la Fase 2.
+- [x] Lectura completa del paper (Miguel, antes del 2026-11-26). Las notas propias en `docs/notes/` quedan opcionales.
 - [ ] Publicar la pregunta sobre reglas en el Space del leaderboard (§8.3).
-- [ ] Capturar el estado actual del leaderboard en `docs/reports/leaderboard_snapshots/2026-11.md`.
+- [x] Capturar el estado actual del leaderboard: `docs/reports/leaderboard_snapshots/2026-11-26.md`, generado con `scripts/leaderboard_snapshot.py` (reutilizable en cada hito).
 
 **Entregables.** `pyproject.toml`, `uv.lock`, `.pre-commit-config.yaml`, `.github/workflows/ci.yml`, `README.md`, `CLAUDE.md`, `docs/BITACORA.md`, `docs/COMPUTE.md`, `docs/notes/00_paper_resumen.md`, `scripts/check_env.py`, `scripts/cluster/`, `notebooks/00_colab_bootstrap.ipynb`.
 
 **Definition of Done.** `uv sync && uv run pytest` pasa en una máquina limpia; CI verde; `scripts/check_env.py` calcula las 4 métricas de un coilset del dataset usando upstream, en local y en el cluster (o, si el acceso aún no está listo, en Colab, con el acceso al cluster como tarea abierta con fecha); Miguel explica en 5 minutos, sin notas, qué entra y qué sale del modelo y cómo se puntúa.
+
+**Ejercicio de Biot–Savart a mano (aprendizaje):** pospuesto por decisión de Miguel (demasiado básico para el valor que aporta ahora); se retoma si hace falta en la Fase 4.
 
 **Aprendizaje para Miguel.**
 - Stellarators: por qué campos 3D, superficies de flujo, transformada rotacional, stage 1 vs. stage 2, omnigenidad/QI. Lecturas: Imbert-Gérard, Paul & Wright, *An Introduction to Stellarators* (arXiv:1908.05360), caps. iniciales; Helander (2014), *Theory of plasma confinement in non-axisymmetric magnetic fields* (lectura selectiva); charlas introductorias de M. Landreman.

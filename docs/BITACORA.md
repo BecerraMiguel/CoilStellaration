@@ -395,3 +395,66 @@ que añade esta entrada, ROADMAP v1.3 y cambios de `CLAUDE.md` (su hash se cita 
 
 ### Modelo(s) de Claude usados
 - Sonnet 5.5 (sesión principal en el PC Ryzen; sin subagentes).
+
+---
+
+## Entrada 6 — 2026-11-26 — Scoring del baseline, captura del leaderboard y estado de la Fase 0
+
+**Fecha:** 2026-11-26
+**Sesión / Fase:** sesión 3, Fase 0
+**Commits:** `8192bfb` docs: roadmap v1.3, recalibrated calendar, journal entry 5 (commit de la bitácora
+de la Entrada 5); `8c0478e` feat(scripts): add reproducible leaderboard snapshot script; más el commit
+que añade esta entrada, la captura del leaderboard y los cambios de ROADMAP y `CLAUDE.md` (su hash se
+cita en la Entrada 7).
+
+### Qué se hizo
+- **CI verde a la primera** en `8192bfb` (lint ~17 s, tests ~1 min 20 s en máquina limpia de GitHub).
+- **Swap del PC Ryzen ampliado a 8 GB** (Miguel). `quickcheck_score.py --n 4` ya corre sin OOM.
+- **Scoring del checkpoint MLP incluido** (fixed_shape, tight, 4 instancias, local, no oficial):
+
+  | # | S | v(d_CC) | v(d_CP) | v(κ) | v(ε) | tiempo |
+  |---|---|---|---|---|---|---|
+  | 0 | 5.8e−3 | 0 | 0 | 0 | 5.15 | 108 s (incluye JIT) |
+  | 1 | 2.0e−2 | 0.090 | 0.040 | 0.289 | 2.86 | 9.9 s |
+  | 2 | 8.9e−7 | 0.471 | 0.075 | 1.16 | 9.67 | 9.3 s |
+  | 3 | 3.2e−6 | 0.151 | 0.006 | 0 | 12.3 | 9.3 s |
+
+  Media 0.0065, strict 0 %. Total 145 s, pico 3.5 GB. Coherente con el paper: el error de campo
+  (violaciones 3–12) destruye el score aunque la geometría sea casi correcta. 4 instancias no son
+  estadística, solo comprueban el pipeline de punta a punta.
+- **Captura del leaderboard** `docs/reports/leaderboard_snapshots/2026-11-26.md`, generada con
+  `scripts/leaderboard_snapshot.py` desde el dataset público de resultados del Space (revisión
+  `854fbcf`, 63 envíos): ranking por score y primer frente de Pareto (strict vs. tiempo) por track.
+- ROADMAP: paper leído, cuentas de HF y W&B creadas (los tokens se configuran al usarlos),
+  captura del leaderboard hecha, notebook de Colab pospuesto (D-017), ejercicio de Biot–Savart
+  pospuesto por decisión de Miguel.
+
+### Decisiones
+| ID | Decisión | Motivo | Alternativas descartadas |
+|---|---|---|---|
+| D-017 | **Notebook de Colab y `check_env.py` en GPU pospuestos a la Fase 2.** | En la Fase 0 solo repetiría S = 1, ya demostrado en el PC Ryzen; su valor real (coste de DESC en GPU, Colab listo para entrenar) aparece en la Fase 2. Propuesta de Miguel. | Hacerlo ahora por completar la lista. |
+
+### Discusiones y hallazgos
+- **El leaderboard avanzó muchísimo en dos semanas** (12 → 26 de noviembre):
+  - fixed_shape: el mejor pasa de 78.8 % a **100 % strict** (`wolfoftizirane/...-resmlp-lm-repair-fixed`,
+    red pequeña + LM en el grafo, ~1.6 s/instancia). Varios envíos superan el 95 %.
+  - variable_shape: mejor 94.7 % strict (`wolfoftizirane/...-screened-projection`, ~0.46 s).
+  - **Modelos rápidos** (~0–1 ms, probablemente sin optimizador en el grafo): `phanerozoic/...-direct`
+    con 44–49 % strict y media 0.68–0.74 en fixed; `petro-popov/...-direct-phys-resmlp` (nombre
+    sugerente de entrenamiento con física, nuestra apuesta A2) con 22 % / 0.38.
+  - **Consecuencia:** los objetivos L3 del ROADMAP (S̄ ≥ 0.30, strict ≥ 10 %) y en parte L4 ya los
+    superan terceros. Es un punto de decisión G6 adelantado: hay que revisar la estrategia (qué
+    aporte original queda: ¿frontera de Pareto?, ¿estrato tight en un solo paso?, ¿variable_shape?,
+    ¿coste por instancia?) antes de entrar de lleno en las fases 1–2.
+- Los resultados no indican si un envío es puro o híbrido; los baselines de Proxima no están en el
+  dataset de resultados.
+
+### Próximos pasos
+- [ ] **Sesión de revisión estratégica (G6 adelantado)** a la vista del leaderboard; actualizar los
+  objetivos L3/L4 y, si cambia el enfoque, las fases 5–7 del ROADMAP.
+- [ ] Pendientes de Miguel para cerrar M0 (2026-12-06): `docs/COMPUTE.md` (cluster) y pregunta de
+  reglas a los organizadores; issue del bug de upstream (opcional).
+- [ ] Después: Fase 1 (EDA).
+
+### Modelo(s) de Claude usados
+- Sonnet 5.5 (sesión principal en el PC Ryzen; sin subagentes).
