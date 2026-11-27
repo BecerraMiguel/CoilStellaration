@@ -197,3 +197,40 @@ Para los organizadores:
 - Opus 5.5 (sesión principal y revisión).
 - Sonnet 5.5 (subagente de setup del repo y de esta bitácora).
 - Fable 5.2 (subagente del roadmap).
+
+---
+
+## Entrada 2 — 2026-11-26 — Repositorio publicado en GitHub
+
+**Fecha:** 2026-11-26
+**Sesión / Fase:** sesión 2, Fase 0
+**Commits:** `af950ce` docs: add project journal (bitácora) with entries 0–1 (commit de la bitácora
+de la Entrada 1); `b8591ea` docs: reference bitácora workflow in CLAUDE.md (citado en la Entrada 1
+como "condicional"); más el commit que añade esta entrada (su hash se cita en la Entrada 3).
+
+### Qué se hizo
+- Miguel creó el repositorio público `BecerraMiguel/CoilStellaration` en GitHub.
+- Después de `b8591ea` se añadió el remoto `origin` por SSH
+  (`git@github.com:BecerraMiguel/CoilStellaration.git`, clave `~/.ssh/id_ed25519_github` ya
+  configurada) y se hizo `git push -u origin main` con los 9 commits de la Entrada 1.
+
+### Decisiones
+| ID | Decisión | Motivo | Alternativas descartadas |
+|---|---|---|---|
+| D-011 | **Repo público en GitHub desde el inicio**, remoto por SSH, rama única `main` por ahora. | El historial y la bitácora muestran el proceso, no solo el resultado (valor de portafolio); facilita CI y llevar el código al cluster/Colab con `git clone --recurse-submodules`. Datos, PDFs y checkpoints ya están en `.gitignore`. | Privado hasta M2 (se pierde la trazabilidad pública del proceso); HTTPS con token (SSH ya estaba configurado). |
+
+### Discusiones y hallazgos
+- El email de los commits (identidad global de git) queda visible en el historial público; Miguel
+  lo aceptó al crear el repo. Si se quiere ocultar en el futuro: email `noreply` de GitHub para los
+  commits nuevos (el historial ya publicado no se reescribe).
+- El hito M0 (2026-11-23) ya pasó: la pregunta de reglas a los organizadores sigue pendiente.
+
+### Próximos pasos (Fase 0)
+- [ ] CI con GitHub Actions (ruff + pytest; en los runners de GitHub sí hay AVX, así que también
+  corre el import de upstream).
+- [ ] Notebook de Colab que verifique JAX/DESC/coilstellaration y calcule las métricas de una fila.
+- [ ] `docs/COMPUTE.md` con el acceso al cluster.
+- [ ] Publicar la pregunta de reglas a los organizadores.
+
+### Modelo(s) de Claude usados
+- Opus 5.5 (sesión principal; tarea corta, sin subagente).
