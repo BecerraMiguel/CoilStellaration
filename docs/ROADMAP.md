@@ -1,6 +1,6 @@
 # ROADMAP — Proyecto CoilStellaration (`coilgen`)
 
-> Documento vivo compartido entre Miguel y Claude. Versión 1.1 — 2026-11-12.
+> Documento vivo compartido entre Miguel y Claude. Versión 1.3 — 2026-11-26.
 > Idioma: este documento y `docs/BITACORA.md` en español; código, commits, `README.md` y `CLAUDE.md` en inglés.
 > Las afirmaciones marcadas con **(a verificar)** son hipótesis de planificación, no hechos medidos.
 
@@ -158,16 +158,19 @@ Una "sesión" = 2–3 h de trabajo conjunto. Las fases 6 y 7 pueden intercambiar
 
 **Tareas**
 
-- [ ] Entorno `uv` con Python 3.12; `uv.lock` commiteado; upstream como submódulo fijado en `external/coilstellaration` e instalado como dependencia editable.
-- [ ] Verificar que `import desc`, `import coilstellaration` y un cálculo de métricas sobre una fila funcionan **en Colab y en el cluster**. En local está comprobado que no es posible: la CPU (Intel Celeron N2840) no tiene AVX, así que jaxlib no arranca (`RuntimeError` en el import y SIGILL si se fuerza). Todo lo que use JAX/DESC se ejecuta fuera de la máquina local. Documentar tiempos y pico de memoria.
+- [x] Entorno `uv` con Python 3.12; `uv.lock` commiteado; upstream como submódulo fijado en `external/coilstellaration` e instalado como dependencia editable. (`9cf503a`, `b397ce7`)
+- [x] Verificar que `import desc`, `import coilstellaration` y un cálculo de métricas sobre una fila funcionan en local: hecho en el **PC Ryzen** con `scripts/check_env.py` (el coilset de referencia reproduce sus objetivos con error relativo ~1e−15; S = 1). Tiempos y pico de memoria en BITACORA, Entrada 5. En el PC Celeron no es posible (sin AVX, D-008).
+- [ ] Repetir `scripts/check_env.py` en Colab y en el cluster (GPU) y anotar tiempos.
 - [ ] **Acceso al cómputo del grupo de la universidad:** averiguar y documentar en `docs/COMPUTE.md` el modo de acceso (SLURM o SSH directo), GPUs disponibles, cuotas y normas de uso, almacenamiento (home/scratch), salida a internet desde los nodos y si se admiten contenedores (Apptainer/Docker). Confirmar con el responsable del grupo que este proyecto puede usar el recurso.
-- [ ] Replicar el entorno en el cluster (`uv sync` desde el lock, o imagen de contenedor a partir del Dockerfile de upstream si `uv` no es viable) y ejecutar allí `scripts/check_env.py` en GPU.
+- [ ] Replicar el entorno en el cluster (`uv sync` desde el lock, o imagen de contenedor a partir del Dockerfile de upstream si `uv` no es viable) y ejecutar allí `scripts/check_env.py` en GPU. (Requisitos de sistema ya conocidos: `cmake ninja-build libnetcdf-dev` y compilador C/C++ para `booz-xform`.)
 - [ ] Plantillas de lanzamiento: `scripts/cluster/{train.sbatch,eval_array.sbatch}` (o equivalentes `ssh` + `tmux` si no hay planificador) y un notebook de arranque para Colab que clona el repo e instala el entorno.
 - [ ] Decidir si se compila REGCOIL en local (gfortran/cmake presentes) o se pospone: solo es necesario para regenerar warm starts, no para el benchmark.
-- [ ] `pyproject.toml` con `ruff`, `pytest`, `pre-commit`; estructura `src/coilgen/` con paquete importable y un test trivial.
-- [ ] CI mínima en GitHub Actions: lint + tests rápidos (sin DESC pesado).
-- [ ] `README.md` (inglés) con objetivo, estado y cómo reproducir; `CLAUDE.md` con convenciones del proyecto; `docs/BITACORA.md` iniciada.
-- [ ] Cuentas: Hugging Face (token de lectura/escritura), Weights & Biases, GitHub (repo público desde el principio o privado hasta M2: decisión de Miguel).
+- [x] `pyproject.toml` con `ruff`, `pytest`, `pre-commit`; estructura `src/coilgen/` con paquete importable y un test trivial. (`dc0a2f4`, `9c34499`)
+- [x] CI mínima en GitHub Actions: lint + tests rápidos (sin DESC pesado). (`39f5ce3`, Entrada 5)
+- [x] `README.md` (inglés) con objetivo, estado y cómo reproducir; `CLAUDE.md` con convenciones del proyecto; `docs/BITACORA.md` iniciada. (`dc0a2f4`, `b4cbdf2`, `af950ce`)
+- [x] Cuenta y repo de GitHub: público desde el principio (D-011).
+- [ ] Cuenta de Hugging Face y token (lectura para descargas; escritura para los envíos de la Fase 2).
+- [ ] Cuenta de Weights & Biases (necesaria desde la Fase 2).
 - [ ] Lectura completa del paper (23 páginas) con notas propias; lista de dudas en `docs/notes/00_paper_dudas.md`.
 - [ ] Publicar la pregunta sobre reglas en el Space del leaderboard (§8.3).
 - [ ] Capturar el estado actual del leaderboard en `docs/reports/leaderboard_snapshots/2026-11.md`.
@@ -181,7 +184,7 @@ Una "sesión" = 2–3 h de trabajo conjunto. Las fases 6 y 7 pueden intercambiar
 - Ejercicio a mano: campo en el eje de una espira circular por Biot–Savart, y comprobarlo numéricamente en un notebook propio.
 - Herramientas: `uv`, `git` con ramas, Conventional Commits.
 
-**Riesgos y mitigación.** JAX/DESC no corren en local (CPU sin AVX, confirmado) → todas las comprobaciones con JAX/DESC van a Colab o al cluster desde el primer día; en local solo código, tests sin JAX y EDA con pandas/pyarrow. El acceso al cluster se retrasa o tiene restricciones (sin internet en nodos, sin `uv`) → Colab cubre las fases 0–2; preparar caché de HF y wheels en el nodo de login, o contenedor. Instalación de `constellaration`/`vmecpp` falla → no es necesaria para el benchmark si solo se usan fronteras ya calculadas; aislarla como extra opcional.
+**Riesgos y mitigación.** JAX/DESC no corren en el PC Celeron (sin AVX, D-008) → ahí solo código, docs y EDA con pandas/pyarrow; JAX/DESC en el PC Ryzen (D-013) para pruebas pequeñas y en Colab/cluster para lo serio. La evaluación DESC en el PC Ryzen pide ~3.7 GB de RAM por instancia (de 5.7 GB): una instancia a la vez y nada más pesado abierto en paralelo. El acceso al cluster se retrasa o tiene restricciones (sin internet en nodos, sin `uv`) → Colab cubre las fases 0–2; preparar caché de HF y wheels en el nodo de login, o contenedor. Instalación de `constellaration`/`vmecpp` falla → no es necesaria para el benchmark si solo se usan fronteras ya calculadas; aislarla como extra opcional.
 
 **Modelos.** Sonnet para scaffolding, CI y docs. Haiku para búsquedas en el repo upstream. Miguel lee el paper él mismo; Claude (Opus) responde dudas, no resume en su lugar.
 
@@ -230,7 +233,7 @@ Una "sesión" = 2–3 h de trabajo conjunto. Las fases 6 y 7 pueden intercambiar
 - [ ] Ejecutar `run_model_training` de upstream para MLP y ResMLP (fixed) y PerCoilMLP (variable), 3 seeds, en el cluster del grupo (Colab como alternativa para la primera prueba). Registrar en W&B.
 - [ ] Evaluar con `run_benchmark_scoring` de upstream y con el checkpoint incluido; comparar con Tbl. 1–2.
 - [ ] `coilgen.eval`: harness propio que envuelve el scoring de upstream, añade desglose por estrato y por métrica, bootstrap de intervalos de confianza y comparación pareada entre modelos.
-- [ ] **Medir el coste de la evaluación con DESC** por instancia (tiempo y RAM, CPU local vs. nodo del cluster, CPU vs. GPU) y montar la evaluación de un split completo como *job array* paralelo. Este número fija la planificación de evaluaciones de todo el proyecto.
+- [ ] **Medir el coste de la evaluación con DESC** por instancia (tiempo y RAM, CPU local vs. nodo del cluster, CPU vs. GPU) y montar la evaluación de un split completo como *job array* paralelo. Este número fija la planificación de evaluaciones de todo el proyecto. Primera medida en el PC Ryzen (Entrada 5): ~100 s la primera instancia (compilación JIT), ~10 s las siguientes del mismo proceso, pico ~3.7 GB.
 - [ ] Definir conjuntos de evaluación: `dev-300` (300 instancias estratificadas del split de validación propio, para uso diario), `val-full`, y `test` (split oficial, uso contado).
 - [ ] Caché de métricas por hash de (coilset, instancia) en `outputs/cache/`.
 - [ ] Exportación a ONNX: estudiar cómo lo hace upstream; test de ida y vuelta JAX ↔ `onnxruntime` (diferencia < 1e−5); validar el contrato de entradas/salidas y metadatos (`supported_tracks`).
@@ -528,7 +531,8 @@ El hardware local **no** es el límite del proyecto. Hay tres niveles, cada uno 
 
 | Nivel | Recurso | Papel | No usar para |
 |---|---|---|---|
-| 1 | **Máquina local** (2 CPU sin AVX, 3 GB RAM, sin GPU) | Desarrollo, tests unitarios sin JAX, EDA ligero sobre `results` con pandas/pyarrow, sesiones con Claude Code | Cualquier cosa con JAX/DESC (jaxlib exige AVX), entrenamiento, evaluación |
+| 1a | **PC Celeron** (2 CPU sin AVX, 3 GB RAM, sin GPU) | Desarrollo, docs, tests unitarios sin JAX, EDA ligero sobre `results` con pandas/pyarrow, sesiones con Claude Code | Cualquier cosa con JAX/DESC (jaxlib exige AVX), entrenamiento, evaluación |
+| 1b | **PC Ryzen** (4 núcleos/8 hilos con AVX2, 5.7 GB RAM, sin GPU) | Todo lo de 1a, más JAX/DESC a pequeña escala: tests de upstream, `check_env.py`, scoring de unas pocas instancias, smoke tests de entrenamiento, prototipos de `coilgen.physics` | Entrenamiento real, evaluación DESC de splits (≈10 s/instancia en caliente y ~3.7 GB de RAM: 1 instancia a la vez) |
 | 2 | **Google Colab** (GPU) | Experimentos interactivos y prototipos: probar una pérdida, depurar en GPU, notebooks de paridad, primeras curvas | Barridos, trabajos largos o que deban sobrevivir a una desconexión |
 | 3 | **GPUs del grupo de investigación de la universidad** | **Recurso principal:** entrenamientos serios, barridos de hiperparámetros, multi-seed, evaluaciones DESC de splits completos, refinamiento a gran escala | — |
 | Opcional | Cloud de pago (vast.ai, RunPod, Lambda, Modal) | Solo como respaldo si el cluster no está disponible o hay un pico puntual | Uso por defecto |
@@ -604,18 +608,20 @@ Cada run registra: commit, config completo, revisión del dataset, seed, hardwar
 
 Calendario tentativo a tiempo parcial (~8–10 h/semana) desde el 2026-11-12. Se revisa en cada hito.
 
+**Recalibrado en v1.3 (2026-11-26):** M0 no se cerró en su fecha (faltaban CI, verificación de métricas, `docs/COMPUTE.md`, pregunta de reglas y lectura del paper). Se desplaza M0 al 2026-12-06 y todos los hitos siguientes **+2 semanas**. Las fechas originales quedan entre paréntesis. Se vuelve a calibrar cuando Miguel confirme sus horas semanales reales (§9).
+
 | Hito | Fecha tentativa | Contenido | Tag |
 |---|---|---|---|
-| M0 | 2026-11-23 | Entorno, repo, CI, paper leído, pregunta de reglas publicada | — |
-| M1 | 2026-12-07 | EDA completo, escalera trivial, split de validación | `v0.1.0` |
-| M2 | 2026-12-28 | Baselines reproducidos, harness, primer envío | `v0.2.0` |
-| M3 | 2027-01-10 | Revisión de literatura y síntesis | — |
-| M4 | 2027-01-31 | `coilgen.physics` validado contra DESC | `v0.3.0` |
-| M5 | 2027-03-07 | Track A v1 por encima de los baselines, enviado | `v0.4.0` |
-| M6 | 2027-04-18 | Track A v2 (o informe negativo) | `v0.5.0` |
-| M7 | 2027-05-16 | Track B: curva calidad–cómputo (y envío si procede) | `v0.6.0` |
-| M8 | 2027-05-30 | Evaluación final congelada | `v1.0.0` |
-| M9 | 2027-06-20 | Informe, posts y contacto con autores | `v1.0.1` |
+| M0 | 2026-12-06 (2026-11-23) | Entorno, repo, CI, paper leído, pregunta de reglas publicada | — |
+| M1 | 2026-12-21 (2026-12-07) | EDA completo, escalera trivial, split de validación | `v0.1.0` |
+| M2 | 2027-01-11 (2026-12-28) | Baselines reproducidos, harness, primer envío | `v0.2.0` |
+| M3 | 2027-01-24 (2027-01-10) | Revisión de literatura y síntesis | — |
+| M4 | 2027-02-14 (2027-01-31) | `coilgen.physics` validado contra DESC | `v0.3.0` |
+| M5 | 2027-03-21 (2027-03-07) | Track A v1 por encima de los baselines, enviado | `v0.4.0` |
+| M6 | 2027-05-02 (2027-04-18) | Track A v2 (o informe negativo) | `v0.5.0` |
+| M7 | 2027-05-30 (2027-05-16) | Track B: curva calidad–cómputo (y envío si procede) | `v0.6.0` |
+| M8 | 2027-06-13 (2027-05-30) | Evaluación final congelada | `v1.0.0` |
+| M9 | 2027-07-04 (2027-06-20) | Informe, posts y contacto con autores | `v1.0.1` |
 
 ### Decisiones go/no-go
 
@@ -675,19 +681,20 @@ Principio: aportar antes de pedir. Interacciones públicas, técnicas, breves y 
 **Supuestos de este plan**
 
 1. Dedicación a tiempo parcial de ~8–10 h/semana; el calendario escala proporcionalmente.
-2. El clon local de upstream no estaba disponible al redactar el plan (se estaba convirtiendo en submódulo); los detalles de `metrics_utils_v2`, de la exportación ONNX y de las mallas de evaluación se han tomado del resumen de contexto y están por verificar en las fases 0–2.
+2. El clon local de upstream no estaba disponible al redactar el plan; los detalles de `metrics_utils_v2`, de la exportación ONNX y de las mallas de evaluación se tomaron del resumen de contexto. **Parcialmente verificado (v1.3):** `metrics_utils_v2.evaluate_coilset_metrics` reproduce exactamente las métricas del dataset (mallas por defecto: superficie 80×80, 200 puntos por bobina); la exportación ONNX sigue por verificar en la Fase 2.
 3. Las referencias bibliográficas citadas están pendientes de verificación formal en la Fase 3.
 4. Los objetivos numéricos de L3/L4 se basan en el leaderboard del 2026-11-11/12.
 5. JAX + Flax NNX como framework (coherencia con upstream y DESC).
 6. Miguel dispone de GPUs en Colab y en el cluster de su grupo de investigación; el modo de acceso al cluster (SLURM/SSH, contenedores, red) está por documentar en la Fase 0.
+7. Miguel trabaja desde dos PCs sincronizados por GitHub (D-013): Celeron sin AVX y Ryzen con AVX (JAX/DESC a pequeña escala).
 
 **Preguntas para Miguel**
 
 - [ ] ¿Cuántas horas semanales reales y hay fecha límite externa (p. ej., candidaturas)?
 - [ ] Cluster del grupo: ¿SLURM o SSH? ¿Qué GPUs y cuotas? ¿Internet en los nodos? ¿Contenedores permitidos? ¿Hay que pedir permiso o citar al grupo por un proyecto personal?
 - [ ] ¿Presupuesto mensual para uso de Claude (y, como contingencia, para cloud de pago)?
-- [ ] ¿Repo público desde el día 1 o a partir de M2?
-- [ ] ¿Nombre de usuario de HF/GitHub para los repos de modelos?
+- [x] ¿Repo público desde el día 1 o a partir de M2? → Público desde el día 1 (D-011).
+- [ ] ¿Nombre de usuario de HF/GitHub para los repos de modelos? → GitHub: `BecerraMiguel`; HF: pendiente.
 - [ ] Nivel de partida en JAX, ML generativo y electromagnetismo (para ajustar las tareas de aprendizaje).
 - [ ] ¿Prioridad si hay que elegir: Track A (más original) o Track B (scores más altos)? Propuesta por defecto: A primero.
 
@@ -719,3 +726,4 @@ Principio: aportar antes de pedir. Interacciones públicas, técnicas, breves y 
 | 2026-11-12 | 1.0 | Versión inicial del roadmap | Claude (Fable) + Miguel |
 | 2026-11-12 | 1.1 | Estrategia de cómputo en tres niveles: local (desarrollo), Colab (prototipos), GPUs del grupo de la universidad (recurso principal); cloud de pago solo como respaldo. Tareas de cluster añadidas a las fases 0 y 2 | Claude (Fable) + Miguel |
 | 2026-11-12 | 1.2 | Hallazgo del setup: la CPU local no tiene AVX y JAX/DESC no corren en local. Todo lo que use JAX pasa a Colab o al cluster (fase 0, riesgos, tabla de §6.1) | Claude (Opus) + Miguel |
+| 2026-11-26 | 1.3 | Segundo PC (Ryzen, con AVX) en §6.1 y en la Fase 0 (D-013); casillas de la Fase 0 actualizadas con sus commits; `check_env.py` y CI hechos; primera medida del coste de DESC; calendario recalibrado +2 semanas (M0 → 2026-12-06); supuesto 2 parcialmente verificado | Claude (Sonnet) + Miguel |

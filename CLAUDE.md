@@ -57,7 +57,11 @@ metrics the reference DESC coilset achieved, so every instance is feasible by co
   non-finite metric -> v=inf.
 - aggregates: `mean` (paper headline), `median`, `p10`, `feasibility_rate_0p9` (S>=0.9), and
   `strict_feasibility` (all v_i <= 1e-3).
-- **Leaderboard ranks by strict_feasibility THEN mean** (the paper ranks by mean). Achieved metrics
+- **Ranking**: the score-only table ranks by strict_feasibility THEN mean (the paper ranks by
+  mean). Since upstream `c60811b` (2026-11-16, newer than our pin) the leaderboard FRONT PAGE ranks
+  by **Pareto front of score (strict by default, or mean) vs. cost (mean inference time per
+  instance, or parameter count)**; the score-only table moved to a "Score ranking" tab. Slow
+  in-graph optimizers no longer top the front page automatically. Achieved metrics
   are recomputed by DESC on the instance's own DESC equilibrium (`EvalData.desc_equilibrium`).
 
 **ONNX submission contract** (public HF model repo, `model.onnx` <= 50 MiB):
@@ -129,8 +133,12 @@ uv run pytest external/coilstellaration/src/coilstellaration/benchmark/scoring_t
 uv run ruff check . && uv run ruff format .            # line length 100
 uv run pre-commit run --all-files
 JAX_PLATFORMS=cpu WANDB_MODE=offline uv run python external/coilstellaration/examples/run_model_training.py
-uv run python external/coilstellaration/examples/run_benchmark_scoring.py --checkpoint-id DHmCARHZ4ay9rsMDPdjVCu3 --model-kind mlp --track fixed_shape --stratum tight --n 4
+uv run python scripts/check_env.py --n 1              # reference coilset reproduces its targets (S=1)
+uv run python scripts/quickcheck_score.py --n 4       # score the bundled MLP checkpoint, in-process
 ```
+Upstream `examples/run_benchmark_scoring.py` is BROKEN at our pin (and on upstream main as of
+2026-11-26): its per-instance worker imports `coilstellaration.examples`, which is not in the
+package, so every instance silently scores 0. Use `scripts/quickcheck_score.py` instead.
 `regcoil` (Fortran binary) is only needed to GENERATE data (`run_regcoil.py`); it is not built here.
 Upstream's own `pytest` config (`testpaths=["src","leaderboard/tests"]`) does not apply from this
 root; pass paths explicitly.
@@ -166,7 +174,11 @@ current one with `grep -m1 'model name' /proc/cpuinfo` (or `grep -c avx /proc/cp
   skips the upstream import when AVX is missing.
 - **PC Ryzen** (AMD Ryzen 5 3500U; 4 cores / 8 threads, 5.7 GB RAM, no GPU, Ubuntu 26.04, sudo with
   password, ~430 GB free disk). **Has AVX/AVX2**: JAX (CPU), DESC and `import coilstellaration`
-  work; all our tests and upstream `scoring_test.py` pass. Use it for JAX/DESC development, upstream
+  work; all our tests and upstream `scoring_test.py` pass. **Memory is the limit**: one DESC
+  metric evaluation peaks at ~3.7 GB RSS (first instance ~100 s incl. JIT, then ~10 s each in the
+  same process); with the desktop open only ~3.6 GB are free and the stock 512 MB swap gets the
+  process OOM-killed (silently: output just stops; check `journalctl -k | grep -i oom`). Run one
+  DESC job at a time; free models/JAX caches before DESC; a larger swapfile is recommended. Use it for JAX/DESC development, upstream
   tests, scoring a handful of instances, tiny training smoke runs. Still not for real training or
   full-eval DESC scoring (RAM). uv is in `~/.local/bin`. `booz-xform` (via `constellaration`) has no
   wheel and builds from source: needs apt `build-essential cmake ninja-build libnetcdf-dev`; if the

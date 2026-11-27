@@ -314,3 +314,84 @@ cita en la Entrada 5).
 
 ### Modelo(s) de Claude usados
 - Sonnet 5.5 (sesión principal en el PC Ryzen; sin subagentes).
+
+---
+
+## Entrada 5 — 2026-11-26 — Fase 0: verificación del pipeline, CI y roadmap v1.3
+
+**Fecha:** 2026-11-26
+**Sesión / Fase:** sesión 3, Fase 0
+**Commits:** `6d9df58` docs: describe both local PCs and sync workflow; add journal entry 4 (commit
+de la bitácora de la Entrada 4); `c0bb355` feat(scripts): add environment check and in-process
+quick-check scoring; `39f5ce3` ci: add GitHub Actions workflow with lint and test jobs; más el commit
+que añade esta entrada, ROADMAP v1.3 y cambios de `CLAUDE.md` (su hash se cita en la Entrada 6).
+
+### Qué se hizo
+- **Revisión completa del repo** con Miguel (qué es el reto, dataset, scoring, plan) y aclaraciones:
+  estructura del dataset, "un solo forward pass", tracks del benchmark vs. tracks del proyecto.
+- **Dataset `results` descargado en el PC Ryzen** (revisión fijada por upstream `f505cc8`). Recuentos
+  verificados: 266,549 muestras = pares (frontera, requisitos) sobre 14,496 fronteras; **todas**
+  tienen coilset REGCOIL; 177,341 (66.5 %) tienen además coilset DESC (~12.3 por frontera);
+  138,711 coilsets DESC cumplen `meets_relative_error_thresholds`. Retención DESC por N_FP:
+  2 → 99 %, 3 → 86 %, 4 → 52 %, 5 → 36 %. Track fijo 53,206 / 2,771 (coincide con el paper).
+- **`scripts/check_env.py`**: evalúa con DESC (mismo código que el leaderboard) el coilset de
+  referencia de filas del split eval y comprueba que reproduce sus objetivos. Resultado en 2 filas
+  tight de `fixed_shape`: error relativo ≤ 8e−15 en las 4 métricas, S = 1, strict. **El entorno y el
+  pipeline de evaluación son exactos.** Coste en el PC Ryzen: primera instancia ~23 s (reconstruir
+  equilibrio) + ~76 s (métricas, incluye compilación JIT); siguientes en el mismo proceso ~3 s + ~6 s;
+  pico de memoria ~3.7 GB.
+- **`examples/run_benchmark_scoring.py` de upstream está roto**: el subproceso de cada instancia
+  hace `from coilstellaration.examples import ...`, módulo que no existe en el paquete instalado,
+  así que todas las instancias fallan y puntúan 0 en silencio (el resumen muestra 0.0 sin error).
+  Sigue igual en el `main` de upstream a 2026-11-26.
+- **`scripts/quickcheck_score.py`**: sustituto propio, en un solo proceso, que sigue los 6 pasos del
+  README de upstream (cargar filas, predecir, métricas DESC, score). Primera instancia tight con el
+  checkpoint MLP incluido: **S = 5.8e−3**, violaciones d_CC 0, d_CP 0, κ 0, **ε 5.15**: el modo de
+  fallo dominante descrito en el paper. Las instancias siguientes no se pudieron evaluar por memoria
+  (ver hallazgos).
+- **CI en GitHub Actions** (`.github/workflows/ci.yml`): job `lint` (pre-commit con `uvx`, sin
+  construir el entorno) y job `tests` (submódulo, dependencias de sistema, `uv sync --locked`,
+  nuestros tests y `scoring_test.py` de upstream). Acciones fijadas por hash como en upstream.
+- **ROADMAP v1.3**: PC Ryzen en §6.1 y Fase 0; casillas de la Fase 0 marcadas con sus commits;
+  primera medida del coste de DESC en la Fase 2; calendario recalibrado; supuesto 2 parcialmente
+  verificado; respuestas a preguntas ya resueltas (repo público, usuario de GitHub).
+- `CLAUDE.md`: comandos nuevos, aviso del bug de upstream, cambio de ranking del leaderboard, límite
+  de memoria del PC Ryzen.
+
+### Decisiones
+| ID | Decisión | Motivo | Alternativas descartadas |
+|---|---|---|---|
+| D-014 | **Scoring local con script propio en un solo proceso** (`scripts/quickcheck_score.py`) en lugar de `run_benchmark_scoring.py` de upstream; no se parchea el submódulo. Es el germen del harness de la Fase 2. | El script de upstream no evalúa nada en el pin actual; además, un solo proceso reutiliza la compilación JIT (~10 s/instancia en vez de ~100 s). | Parchear upstream en el submódulo (prohibido por D-002); subir el pin (el bug sigue en `main`). |
+| D-015 | **Calendario recalibrado +2 semanas** (M0 → 2026-12-06, M9 → 2027-07-04), conservando las fechas originales entre paréntesis. | M0 venció el 2026-11-23 con tareas abiertas; mejor un plan realista que uno ignorado. | Mantener fechas (dejarían de servir para decidir); replanificar a fondo sin conocer aún las horas semanales reales. |
+| D-016 | **CI con dos jobs** (lint rápido + tests con entorno completo) en cada push a `main` y en cada PR; versiones de acciones fijadas por hash. | Detecta en minutos errores de formato, de dependencias o de tests en una máquina limpia, independiente de los dos PCs; los runners de GitHub tienen AVX, así que también prueban upstream. | Solo lint (no detectaría entornos rotos); ejecutar DESC pesado en CI (lento y caro para cada push). |
+
+### Discusiones y hallazgos
+- **Cambio de ranking del leaderboard** (upstream `c60811b`, 2026-11-16; `36212bb`, 2026-11-13): la
+  portada ordena ahora por **frente de Pareto de score (strict o media) vs. coste (tiempo medio de
+  inferencia por instancia o nº de parámetros)**; la tabla solo por score pasa a una pestaña aparte.
+  Encaja con el hilo conductor del ROADMAP (frontera calidad vs. cómputo) y quita ventaja automática
+  a los optimizadores lentos dentro del grafo. Nuestro pin (`5b925cf`) aún no incluye ese código;
+  subir el pin es una decisión pendiente (solo afecta a `leaderboard/`).
+- **Memoria del PC Ryzen**: con el escritorio abierto quedan ~3.6 GB libres y el swap es de 512 MB;
+  la evaluación DESC (~3.7–3.9 GB) provoca que el sistema mate el proceso (OOM) **sin mensaje de
+  error en la salida**: la salida simplemente se corta (comprobar con `journalctl -k | grep -i oom`).
+  Ocurrió 3 veces. Solución propuesta: ampliar el swapfile a 8 GB.
+- Pendientes para el EDA: 102,641 filas sin estrato (89,208 sin coilset DESC + 13,433 con DESC);
+  el track variable da 168,576 / 8,765 filas por la columna `benchmark/variable_shape_track` frente a
+  155,850 / 8,058 del paper (probablemente por el filtro `meets_relative_error_thresholds`).
+- Posible contribución a upstream: abrir un issue sobre el bug de `run_benchmark_scoring.py`
+  ("aportar antes de pedir", ROADMAP §8.3). Pendiente de que Miguel decida.
+
+### Próximos pasos (Fase 0, M0 → 2026-12-06)
+- [ ] Ampliar el swap del PC Ryzen y repetir `quickcheck_score.py --n 4` para tener el score de las
+  4 instancias y el coste en caliente.
+- [ ] Comprobar que la CI pasa en GitHub.
+- [ ] Cuenta y token de Hugging Face; cuenta de W&B.
+- [ ] Lectura del paper con notas propias (`docs/notes/00_paper_dudas.md`).
+- [ ] `docs/COMPUTE.md` (acceso al cluster) y notebook de arranque en Colab.
+- [ ] Publicar la pregunta de reglas (revisarla a la luz del ranking por Pareto) y, si Miguel quiere,
+  el issue del bug.
+- [ ] Captura del leaderboard en `docs/reports/leaderboard_snapshots/`.
+
+### Modelo(s) de Claude usados
+- Sonnet 5.5 (sesión principal en el PC Ryzen; sin subagentes).
