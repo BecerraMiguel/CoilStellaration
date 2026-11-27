@@ -266,3 +266,51 @@ Entrada 2); más el commit que añade esta entrada (su hash se cita en la Entrad
 
 ### Modelo(s) de Claude usados
 - Opus 5.5 (sesión principal; tarea corta, sin subagente).
+
+---
+
+## Entrada 4 — 2026-11-26 — Segundo PC de trabajo (Ryzen, con AVX)
+
+**Fecha:** 2026-11-26
+**Sesión / Fase:** sesión 3, Fase 0
+**Commits:** `bc9b0dd` docs: clarify commit authorship convention; add journal entry 3 (commit de la
+bitácora de la Entrada 3); más el commit que añade esta entrada y actualiza `CLAUDE.md` (su hash se
+cita en la Entrada 5).
+
+### Qué se hizo
+- Se preparó un segundo PC de trabajo (AMD Ryzen 5 3500U, 4 núcleos / 8 hilos, 5.7 GB RAM, sin GPU,
+  Ubuntu 26.04) clonando el repo desde GitHub e inicializando el submódulo (sigue en `5b925cf`).
+- Instalación de uv (`~/.local/bin`) y `uv sync`. `booz-xform` (dependencia de `constellaration`)
+  no tiene wheel y se compila desde fuente: hizo falta instalar por apt `build-essential cmake
+  ninja-build libnetcdf-dev`, y limpiar su caché (`uv cache clean booz-xform`) porque un intento
+  fallido dejó un `CMakeCache` apuntando a un `ninja` temporal inexistente.
+- **Esta CPU sí tiene AVX/AVX2:** JAX 0.9.2 (CPU), DESC 0.17.1 e `import coilstellaration` funcionan.
+  Pasan nuestros tests (2) y `scoring_test.py` de upstream (41).
+- Hook de pre-commit instalado (todos los checks pasan) y kernel de Jupyter "Python (coilgen)".
+- Git: identidad `Miguel Becerra <miguelfer.becerra@gmail.com>` a nivel de repo (no global), clave
+  SSH propia de este PC registrada en GitHub, remoto `origin` cambiado de HTTPS a SSH,
+  `pull.rebase=true`.
+- Primer `git pull` desde este PC: trajo `bc9b0dd` (hecho en el PC Celeron) por fast-forward.
+- `CLAUDE.md`, sección *Compute resources*: ahora describe ambos PCs, cómo distinguirlos y el flujo
+  de sincronización.
+
+### Decisiones
+| ID | Decisión | Motivo | Alternativas descartadas |
+|---|---|---|---|
+| D-013 | **Dos PCs locales sincronizados solo vía GitHub.** Cada sesión empieza con `git pull` y termina con commit + `git push`; el trabajo a medias se commitea (`wip:` o rama) antes de cambiar de PC. `pull.rebase=true`. Cada PC tiene su propia clave SSH. Lo no versionado (`.venv`, datos, caché de HF, outputs, memoria de Claude) es local de cada PC; el contexto compartido va en CLAUDE.md, ROADMAP y BITACORA. **Matiza D-008:** el bloqueo de JAX aplica solo al PC Celeron; el PC Ryzen sirve para desarrollo y pruebas pequeñas con JAX/DESC (el entrenamiento real sigue en Colab/cluster). | El PC Ryzen permite iterar en local con JAX/DESC sin depender de Colab; git ya es la fuente de verdad del proyecto. | Sincronizar carpetas (Dropbox/rsync: rompe `.git` y `.venv`); trabajar solo en el Ryzen (Miguel quiere usar ambos). |
+
+### Discusiones y hallazgos
+- Reparto sugerido: Celeron para documentación, bitácora, lectura, escritura de código y EDA con
+  pandas/pyarrow; Ryzen para todo lo que ejecute JAX/DESC. El código JAX escrito en el Celeron se
+  prueba en el Ryzen tras un pull.
+- El conflicto más probable entre PCs es `docs/BITACORA.md` (se toca en cada commit): hacer pull
+  antes de editarla.
+
+### Próximos pasos (Fase 0)
+- [ ] Activar `git config pull.rebase true` también en el PC Celeron.
+- [ ] Siguen pendientes los de la Entrada 2 (CI, notebook de Colab, `docs/COMPUTE.md`, pregunta de
+  reglas a los organizadores). El notebook de verificación de JAX/DESC puede prototiparse ya en el
+  PC Ryzen.
+
+### Modelo(s) de Claude usados
+- Sonnet 5.5 (sesión principal en el PC Ryzen; sin subagentes).

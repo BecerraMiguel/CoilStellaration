@@ -155,18 +155,32 @@ root; pass paths explicitly.
 
 ## Compute resources
 
-- **Local** (2 CPU cores, 3 GB RAM total, often <1 GB free; no GPU, no Docker, no `gh`, no sudo/apt,
-  ~145 GB disk): development, tests, light EDA on the `results` subset (load lazily with
-  pyarrow/polars if `datasets` is heavy), tiny smoke runs. Not for training or full-eval DESC scoring.
-- **Known local blocker**: the local CPU (Intel Celeron N2840) has no AVX; jaxlib wheels require it
-  (`RuntimeError: ... built using AVX`; bypassing the guard gives SIGILL). So JAX, DESC and
-  `import coilstellaration` do NOT work locally; upstream tests/scoring/training must run on Colab or
-  university GPUs. Local-safe: pyarrow/pandas/HF download, `import coilgen`. `tests/test_smoke.py`
+Miguel works from **two local PCs**, kept in sync only through GitHub (D-013). Identify the
+current one with `grep -m1 'model name' /proc/cpuinfo` (or `grep -c avx /proc/cpuinfo`).
+
+- **PC Celeron** (Intel Celeron N2840; 2 cores, 3 GB RAM, often <1 GB free; no GPU, no Docker, no
+  `gh`, no sudo/apt, ~145 GB disk). **No AVX**: jaxlib wheels require it (`RuntimeError: ... built
+  using AVX`; bypassing the guard gives SIGILL), so JAX, DESC and `import coilstellaration` do NOT
+  work there. Use it for docs, journal, code writing, light EDA on the `results` subset
+  (pyarrow/pandas/polars, lazy loading), HF downloads, `import coilgen`. `tests/test_smoke.py`
   skips the upstream import when AVX is missing.
+- **PC Ryzen** (AMD Ryzen 5 3500U; 4 cores / 8 threads, 5.7 GB RAM, no GPU, Ubuntu 26.04, sudo with
+  password, ~430 GB free disk). **Has AVX/AVX2**: JAX (CPU), DESC and `import coilstellaration`
+  work; all our tests and upstream `scoring_test.py` pass. Use it for JAX/DESC development, upstream
+  tests, scoring a handful of instances, tiny training smoke runs. Still not for real training or
+  full-eval DESC scoring (RAM). uv is in `~/.local/bin`. `booz-xform` (via `constellaration`) has no
+  wheel and builds from source: needs apt `build-essential cmake ninja-build libnetcdf-dev`; if the
+  build fails with a stale `ninja` path, run `uv cache clean booz-xform` and re-sync.
+- **Sync workflow between PCs**: start every session with `git pull` (`pull.rebase=true`), then
+  `uv sync` if `pyproject.toml`/`uv.lock` changed and `git submodule update --init` if the pin
+  changed; end with commit + `git push`. Unfinished work is committed (`wip:` or a branch) and pushed
+  before switching PCs. `.venv/`, `data/`, HF cache, `outputs/` and Claude's auto-memory are
+  per-machine and NOT synced: shared context must live in the repo (CLAUDE.md, ROADMAP, BITACORA).
+  Each PC has its own SSH key registered on GitHub (never copy private keys between machines).
 - **Google Colab GPUs**: interactive experiments and prototyping.
 - **University research-group GPUs**: the MAIN resource for training, sweeps and large DESC
   evaluations. Keep training scripts config-driven (`configs/`) so they run unchanged off-machine.
-- Never download the `metrics` subset; avoid loading `coilsets` fully into RAM locally.
+- Never download the `metrics` subset; avoid loading `coilsets` fully into RAM on either PC.
 
 ## Conventions
 
